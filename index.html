@@ -1,0 +1,1063 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>💡 IdeaVerse | Classroom Board</title>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1"></script>
+  <style>
+    /* ═══════════════ FULL CSS (unchanged) ═══════════════ */
+    :root {
+      --bg: #f8fafc; --bg-card: #ffffff; --bg-input: #f1f5f9;
+      --text: #0f172a; --text-secondary: #475569; --text-muted: #94a3b8;
+      --border: #e2e8f0; --primary: #6366f1; --primary-soft: #eef2ff;
+      --danger: #ef4444; --danger-soft: #fef2f2;
+      --success: #10b981; --warning: #f59e0b; --info: #3b82f6;
+      --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+      --shadow: 0 4px 6px rgba(0,0,0,0.03);
+      --radius: 1.25rem; --radius-sm: 0.875rem;
+    }
+    body.dark {
+      --bg: #0f172a; --bg-card: #1e293b; --bg-input: #1e293b;
+      --text: #f1f5f9; --text-secondary: #cbd5e1; --text-muted: #64748b;
+      --border: #334155; --primary: #818cf8; --primary-soft: #1e1b4b;
+      --danger: #f87171; --danger-soft: #450a0a;
+      --success: #34d399; --warning: #fbbf24; --info: #60a5fa;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: var(--bg); color: var(--text);
+      min-height: 100vh; line-height: 1.5; transition: background 0.3s, color 0.3s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .header {
+      background: var(--bg-card); border-bottom: 1px solid var(--border);
+      padding: 0.9rem 1.8rem; display: flex; align-items: center;
+      justify-content: space-between; flex-wrap: wrap; gap: 1rem;
+      box-shadow: var(--shadow-sm); position: sticky; top:0; z-index:50;
+    }
+    .header-left { display:flex; align-items:center; gap:0.6rem; }
+    .logo { font-size:2rem; }
+    .header h1 {
+      font-size:1.5rem; background: linear-gradient(135deg, #6366f1, #a855f7);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .badge {
+      font-size:0.65rem; font-weight:700; text-transform:uppercase;
+      padding:0.25rem 0.75rem; border-radius:2rem;
+      background: var(--primary-soft); color: var(--primary);
+    }
+    .header-actions { display:flex; align-items:center; gap:0.7rem; flex-wrap:wrap; }
+    .btn {
+      display:inline-flex; align-items:center; gap:0.4rem;
+      padding:0.6rem 1.2rem; font-size:0.9rem; font-weight:600;
+      border:none; border-radius:3rem; cursor:pointer; transition: all 0.2s;
+      white-space:nowrap; background:transparent; min-height:44px;
+    }
+    .btn-primary { background:var(--primary); color:white; box-shadow:0 2px 8px rgba(99,102,241,0.3); }
+    .btn-primary:hover { filter:brightness(1.1); transform:translateY(-1px); }
+    .btn-outline { border:1.5px solid var(--border); color:var(--text); background:var(--bg-card); }
+    .btn-outline:hover { border-color:var(--primary); color:var(--primary); background:var(--primary-soft); }
+    .btn-danger { background:var(--danger); color:white; }
+    .btn-danger:hover { background:#dc2626; }
+    .btn-sm { padding:0.45rem 1rem; font-size:0.8rem; min-height:38px; }
+    .btn-icon {
+      padding:0.5rem; border-radius:50%; border:1.5px solid var(--border);
+      color:var(--text-secondary); width:2.4rem; height:2.4rem; background:transparent;
+      min-width:44px; min-height:44px; display:flex; align-items:center; justify-content:center;
+    }
+    .btn-icon:hover { background:var(--bg-input); }
+    .teacher-indicator {
+      background:#fbbf24; color:#0f172a; font-weight:700; font-size:0.75rem;
+      padding:0.35rem 1rem; border-radius:2rem; animation: subtlePulse 2s infinite;
+    }
+    @keyframes subtlePulse { 0%,100%{box-shadow:0 0 0 0 rgba(251,191,36,0.5);} 50%{box-shadow:0 0 0 8px rgba(251,191,36,0);} }
+    .container { max-width:1000px; margin:2rem auto; padding:0 1.5rem; }
+    .card { background:var(--bg-card); border-radius:var(--radius); padding:1.8rem; margin-bottom:1.8rem; border:1px solid var(--border); box-shadow:var(--shadow); }
+    .card-header { display:flex; align-items:center; gap:0.5rem; margin-bottom:1.2rem; font-weight:650; font-size:1.1rem; }
+    .form-group { margin-bottom:1rem; }
+    .form-group label { font-weight:600; font-size:0.8rem; text-transform:uppercase; color:var(--text-secondary); }
+    .form-group input, .form-group textarea, .form-group select {
+      width:100%; padding:0.9rem 1rem; font-size:0.95rem; border:1.5px solid var(--border);
+      border-radius:var(--radius-sm); background:var(--bg-input); color:var(--text);
+      font-family:inherit; resize:vertical; min-height:44px;
+    }
+    .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+      outline:none; border-color:var(--primary); box-shadow:0 0 0 4px rgba(99,102,241,0.1);
+    }
+    .char-count { text-align:right; font-size:0.7rem; color:var(--text-muted); margin-top:0.2rem; }
+    .char-count.warn { color:#f59e0b; font-weight:600; }
+    .checkbox-group { display:flex; align-items:center; gap:0.5rem; margin:0.8rem 0; }
+    .checkbox-group input { width:1.2rem; height:1.2rem; accent-color:var(--primary); }
+    .controls-bar { display:flex; flex-wrap:wrap; gap:0.8rem; margin-bottom:1.2rem; align-items:center; }
+    .search-input {
+      flex:1; min-width:200px; padding:0.6rem 1rem; border:1.5px solid var(--border);
+      border-radius:2rem; background:var(--bg-input); color:var(--text); min-height:44px;
+    }
+    .filter-btns { display:flex; gap:0.4rem; flex-wrap:wrap; }
+    .filter-btn {
+      padding:0.4rem 0.9rem; border-radius:2rem; border:1.5px solid var(--border);
+      background:transparent; color:var(--text-secondary); font-weight:600;
+      cursor:pointer; transition:0.2s; min-height:38px;
+    }
+    .filter-btn.active { background:var(--primary); color:white; border-color:var(--primary); }
+    .ideas-grid { display:flex; flex-direction:column; gap:0.9rem; }
+    .idea-card {
+      background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius-sm);
+      padding:1rem 1.2rem; display:flex; align-items:flex-start; gap:1rem;
+      transition:0.2s; box-shadow:var(--shadow-sm);
+    }
+    .idea-card:hover { border-color:#a5b4fc; }
+    .idea-card.pinned { border-left:4px solid #fbbf24; }
+    .idea-avatar {
+      width:44px; height:44px; border-radius:50%; background:linear-gradient(145deg, #6366f1, #8b5cf6);
+      color:white; display:flex; align-items:center; justify-content:center;
+      font-weight:700; flex-shrink:0;
+    }
+    .idea-content { flex:1; min-width:0; }
+    .idea-author { font-weight:700; font-size:0.9rem; display:flex; align-items:center; gap:0.3rem; cursor:default; }
+    .idea-author.clickable { cursor:pointer; }
+    .idea-author.clickable:hover { text-decoration:underline; }
+    .idea-text { color:var(--text-secondary); font-size:0.9rem; margin-top:0.2rem; word-break:break-word; }
+    .idea-meta { display:flex; align-items:center; gap:0.8rem; margin-top:0.4rem; font-size:0.7rem; color:var(--text-muted); flex-wrap:wrap; }
+    .idea-category { background:var(--primary-soft); color:var(--primary); padding:0.15rem 0.6rem; border-radius:1rem; font-weight:600; font-size:0.7rem; }
+    .status-badge { padding:0.15rem 0.6rem; border-radius:1rem; font-weight:600; font-size:0.7rem; }
+    .status-none { display:none; }
+    .status-review { background:#fef3c7; color:#92400e; }
+    .status-progress { background:#dbeafe; color:#1e40af; }
+    .status-completed { background:#d1fae5; color:#065f46; }
+    .status-considering { background:#fce7f3; color:#9d174d; }
+    .feedback-section { display:flex; gap:0.5rem; margin-top:0.5rem; flex-wrap:wrap; }
+    .feedback-btn {
+      background:var(--bg-input); border:none; border-radius:1.5rem; padding:0.25rem 0.7rem;
+      cursor:pointer; font-size:0.75rem; display:flex; align-items:center; gap:0.3rem;
+      transition:0.2s; min-height:36px;
+    }
+    .feedback-btn:hover { background:var(--primary-soft); }
+    .feedback-btn:disabled { opacity:0.5; cursor:not-allowed; background:var(--bg-input); }
+    .idea-actions { display:flex; gap:0.4rem; margin-left:auto; align-items:center; flex-wrap:wrap; }
+    .icon-btn {
+      background:transparent; border:none; cursor:pointer; font-size:1rem; padding:0.2rem;
+      border-radius:50%; min-width:40px; min-height:40px;
+      display:flex; align-items:center; justify-content:center;
+    }
+    .icon-btn:hover { background:var(--bg-input); }
+    .ban-container { position: relative; }
+    .ban-dropdown {
+      position: absolute; top: 100%; right: 0; background: var(--bg-card);
+      border: 1px solid var(--border); border-radius: var(--radius-sm);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 10;
+      padding: 0.5rem; display: none; flex-direction: column; gap: 0.3rem;
+      min-width: 130px;
+    }
+    .ban-dropdown.active { display: flex; }
+    .ban-option {
+      background: transparent; border: none; padding: 0.4rem 0.8rem;
+      border-radius: 0.5rem; cursor: pointer; font-weight: 500; text-align: left;
+      color: var(--text);
+    }
+    .ban-option:hover { background: var(--bg-input); }
+    .banned-notice {
+      background: var(--danger-soft); border: 1px solid var(--danger);
+      color: var(--danger); padding: 0.5rem 1rem; border-radius: var(--radius-sm);
+      margin-bottom: 1rem; font-weight: 500; font-size: 0.9rem;
+    }
+    .trash-section { margin-top:1.5rem; border-top:2px dashed var(--border); padding-top:1.5rem; }
+    .trash-item { opacity:0.8; background:var(--bg-input); }
+    .toast-container { position:fixed; bottom:1.5rem; right:1.5rem; z-index:200; display:flex; flex-direction:column; gap:0.6rem; }
+    .toast {
+      background:#1e293b; color:#f1f5f9; padding:0.9rem 1.5rem; border-radius:3rem;
+      box-shadow:0 10px 25px rgba(0,0,0,0.2); animation: slideUp 0.4s, fadeOut 0.3s 2.5s forwards;
+      border-left:5px solid var(--primary); max-width:90vw;
+    }
+    .toast.error { border-left-color:var(--danger); }
+    .toast.undo { display:flex; align-items:center; gap:0.8rem; }
+    @keyframes slideUp { from{opacity:0;transform:translateY(20px);} to{opacity:1;transform:translateY(0);} }
+    @keyframes fadeOut { to{opacity:0;transform:translateY(-10px);} }
+    .modal-overlay {
+      display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6);
+      backdrop-filter:blur(4px); z-index:150; align-items:center; justify-content:center;
+    }
+    .modal {
+      background:var(--bg-card); border-radius:var(--radius); padding:2rem; max-width:500px;
+      width:90%; box-shadow:0 25px 50px rgba(0,0,0,0.3); text-align:center;
+      border:1px solid var(--border); overflow-y:auto; max-height:80vh;
+    }
+    .modal input { width:100%; padding:0.9rem; font-size:1rem; border:1.5px solid var(--border); border-radius:var(--radius-sm); background:var(--bg-input); color:var(--text); margin:1rem 0; min-height:44px; }
+    .spotlight-banner {
+      background: linear-gradient(135deg, #fef3c7, #fde68a); color:#0f172a;
+      padding:1rem; border-radius:var(--radius-sm); margin-bottom:1rem; border:1px solid #f59e0b;
+    }
+    .teacher-notes { margin-top:0.5rem; padding:0.5rem; background:var(--bg-input); border-radius:var(--radius-sm); font-size:0.8rem; }
+    @media (max-width:768px) {
+      .header { padding:0.8rem 1rem; }
+      .container { padding:0 1rem; margin:1rem auto; }
+      .card { padding:1.2rem; }
+      .idea-card { flex-wrap:wrap; }
+      .idea-actions { margin-left:0; width:100%; justify-content:flex-end; margin-top:0.5rem; }
+      .controls-bar { flex-direction:column; align-items:stretch; }
+      .search-input { width:100%; }
+      .filter-btns { justify-content:center; }
+      .btn { padding:0.5rem 1rem; font-size:0.85rem; }
+      .toast-container { right:1rem; left:1rem; bottom:1rem; }
+    }
+    @media (max-width:480px) {
+      .header-actions { gap:0.4rem; }
+      .btn-icon { width:2rem; height:2rem; min-width:38px; min-height:38px; }
+      .idea-avatar { width:38px; height:38px; font-size:0.85rem; }
+      .idea-author { font-size:0.85rem; }
+      .idea-text { font-size:0.85rem; }
+      .filter-btn { padding:0.3rem 0.7rem; font-size:0.75rem; min-height:34px; }
+      .feedback-btn { padding:0.2rem 0.5rem; font-size:0.7rem; min-height:34px; }
+      .btn { min-height:40px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="header-left">
+      <span class="logo">💡</span>
+      <h1>IdeaVerse</h1>
+      <span class="badge">Classroom</span>
+    </div>
+    <div class="header-actions">
+      <span id="teacherIndicator" class="teacher-indicator" style="display:none;">🔑 Teacher</span>
+      <button id="soundToggle" class="btn-icon" title="Toggle sound">🔊</button>
+      <button id="themeToggle" class="btn-icon">🌙</button>
+      <button id="autoDarkToggle" class="btn-icon" title="Auto dark mode at sunset">🕒</button>
+      <button id="teacherToggleBtn" class="btn btn-outline">🔒 Teacher</button>
+      <button id="clearAllBtn" class="btn btn-danger btn-sm" style="display:none;">🗑 Trash</button>
+      <button id="bannedWordsBtn" class="btn btn-outline btn-sm" style="display:none;">🚫 Words</button>
+      <button id="exportCsvBtn" class="btn btn-outline btn-sm" style="display:none;">📊 CSV</button>
+      <button id="exportTxtBtn" class="btn btn-outline btn-sm" style="display:none;">📋 TXT</button>
+    </div>
+  </header>
+
+  <div class="container">
+    <!-- Template Prompt -->
+    <div id="promptSection" class="card" style="display:none;">
+      <div class="card-header"><span>📢</span> Today's Prompt</div>
+      <div id="promptDisplay" style="margin-bottom:1rem; font-size:1rem; font-weight:600; color:var(--text);"></div>
+      <div id="promptEditor" style="display:none;">
+        <textarea id="promptInput" placeholder="Enter a question or topic..." rows="2" style="width:100%; padding:0.7rem; border:1.5px solid var(--border); border-radius:var(--radius-sm); background:var(--bg-input); color:var(--text); min-height:44px;"></textarea>
+        <button class="btn btn-primary btn-sm" id="setPromptBtn">Set Prompt</button>
+      </div>
+    </div>
+
+    <!-- Submission Form -->
+    <div class="card" id="submissionCard">
+      <div class="card-header"><span>✍️</span> Share Your Idea</div>
+      <div id="submissionPromptLabel" style="font-weight:600; margin-bottom:0.8rem; color:var(--primary);"></div>
+      <div id="bannedNotice" class="banned-notice" style="display:none;"></div>
+      <form id="ideaForm">
+        <div class="form-group">
+          <label>Your name</label>
+          <input type="text" id="studentName" placeholder="e.g., Alex Johnson" maxlength="40" required autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label>Category</label>
+          <select id="categorySelect">
+            <option value="General">General</option>
+            <option value="Classroom">Classroom</option>
+            <option value="Events">Events</option>
+            <option value="Projects">Projects</option>
+            <option value="Fun">Fun</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Your idea</label>
+          <textarea id="ideaText" placeholder="What would make our classroom even better?" maxlength="500" required></textarea>
+          <div class="char-count" id="charCount">0 / 500</div>
+        </div>
+        <div class="checkbox-group">
+          <input type="checkbox" id="anonymousCheck">
+          <label for="anonymousCheck" style="text-transform:none; font-weight:500;">Post anonymously</label>
+        </div>
+        <button type="submit" class="btn btn-primary" id="submitBtn" style="width:100%;">🚀 Submit Idea</button>
+      </form>
+    </div>
+
+    <!-- Ideas Board -->
+    <div class="card">
+      <div class="card-header">
+        <span>📋</span> Ideas Board
+        <span id="ideaCount" style="margin-left:auto; font-weight:400; font-size:0.85rem; color:var(--text-muted);"></span>
+        <button id="anonymousBoardToggle" class="btn btn-sm btn-outline" style="display:none;" title="Hide all names from students">🕶️ Anon Board</button>
+      </div>
+      <div id="spotlightBanner" class="spotlight-banner" style="display:none;"></div>
+      <div class="controls-bar">
+        <input type="text" class="search-input" id="searchInput" placeholder="🔍 Search ideas...">
+        <div class="filter-btns" id="filterButtons">
+          <button class="filter-btn active" data-category="all">All</button>
+          <button class="filter-btn" data-category="General">General</button>
+          <button class="filter-btn" data-category="Classroom">Classroom</button>
+          <button class="filter-btn" data-category="Events">Events</button>
+          <button class="filter-btn" data-category="Projects">Projects</button>
+          <button class="filter-btn" data-category="Fun">Fun</button>
+        </div>
+      </div>
+      <div class="ideas-grid" id="ideasContainer"></div>
+      <div id="emptyState" style="text-align:center; padding:2rem; color:var(--text-muted);">
+        <div style="font-size:3rem;">💭</div>
+        <p>No ideas yet. Spark the conversation!</p>
+      </div>
+
+      <div id="trashSection" class="trash-section" style="display:none;">
+        <h3 style="margin-bottom:0.8rem;">🗑️ Trash</h3>
+        <div class="ideas-grid" id="trashContainer"></div>
+        <p id="trashEmpty" style="color:var(--text-muted); text-align:center;">Trash is empty.</p>
+        <button class="btn btn-danger btn-sm" id="emptyTrashBtn" style="margin-top:0.8rem;">🗑️ Empty Trash</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Password Modal -->
+  <div class="modal-overlay" id="passwordModal">
+    <div class="modal">
+      <h3>🔐 Teacher Access</h3>
+      <p style="color:var(--text-secondary); margin:0.5rem 0;">Enter the teacher password.</p>
+      <input type="password" id="passwordInput" placeholder="••••••" autocomplete="off">
+      <div style="display:flex; gap:0.8rem; justify-content:center; margin-top:0.5rem;">
+        <button class="btn btn-outline" id="cancelPasswordBtn">Cancel</button>
+        <button class="btn btn-primary" id="confirmPasswordBtn">Unlock</button>
+      </div>
+      <p id="passwordError" style="color:var(--danger); font-size:0.8rem; margin-top:0.8rem; display:none;">Incorrect password</p>
+    </div>
+  </div>
+
+  <!-- Profile Modal -->
+  <div class="modal-overlay" id="profileModal">
+    <div class="modal">
+      <h3 id="profileTitle">👤 Student Ideas</h3>
+      <div id="profileContent" style="text-align:left; max-height:50vh; overflow-y:auto;"></div>
+      <button class="btn btn-outline" id="closeProfileModal">Close</button>
+    </div>
+  </div>
+
+  <!-- Banned Words Modal -->
+  <div class="modal-overlay" id="bannedWordsModal">
+    <div class="modal">
+      <h3>🚫 Banned Words</h3>
+      <p style="color:var(--text-secondary); margin:0.5rem 0;">Students cannot submit ideas containing these words (case‑insensitive).</p>
+      <div style="display:flex; gap:0.5rem; margin:1rem 0;">
+        <input type="text" id="newBannedWord" placeholder="Add a word..." style="flex:1;">
+        <button class="btn btn-primary btn-sm" id="addBannedWordBtn">Add</button>
+      </div>
+      <div id="bannedWordsList" style="text-align:left; max-height:200px; overflow-y:auto; margin-bottom:1rem;"></div>
+      <button class="btn btn-outline btn-sm" id="clearBannedWordsBtn">Clear All</button>
+      <button class="btn btn-outline" id="closeBannedWordsModal" style="margin-left:0.5rem;">Close</button>
+    </div>
+  </div>
+
+  <script>
+    (() => {
+      // ─── Unique user token ───
+      const USER_TOKEN_KEY = 'ideaverse_user_token';
+      let userToken = localStorage.getItem(USER_TOKEN_KEY);
+      if (!userToken) {
+        userToken = crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36)+Math.random().toString(36).slice(2);
+        localStorage.setItem(USER_TOKEN_KEY, userToken);
+      }
+
+      // DOM elements
+      const body = document.body;
+      const themeToggle = document.getElementById('themeToggle');
+      const autoDarkToggle = document.getElementById('autoDarkToggle');
+      const soundToggle = document.getElementById('soundToggle');
+      const ideaForm = document.getElementById('ideaForm');
+      const studentName = document.getElementById('studentName');
+      const categorySelect = document.getElementById('categorySelect');
+      const ideaText = document.getElementById('ideaText');
+      const charCount = document.getElementById('charCount');
+      const anonymousCheck = document.getElementById('anonymousCheck');
+      const ideasContainer = document.getElementById('ideasContainer');
+      const emptyState = document.getElementById('emptyState');
+      const ideaCountEl = document.getElementById('ideaCount');
+      const searchInput = document.getElementById('searchInput');
+      const filterButtons = document.getElementById('filterButtons');
+      const teacherToggleBtn = document.getElementById('teacherToggleBtn');
+      const teacherIndicator = document.getElementById('teacherIndicator');
+      const clearAllBtn = document.getElementById('clearAllBtn');
+      const bannedWordsBtn = document.getElementById('bannedWordsBtn');
+      const exportCsvBtn = document.getElementById('exportCsvBtn');
+      const exportTxtBtn = document.getElementById('exportTxtBtn');
+      const submitBtn = document.getElementById('submitBtn');
+      const trashSection = document.getElementById('trashSection');
+      const trashContainer = document.getElementById('trashContainer');
+      const trashEmpty = document.getElementById('trashEmpty');
+      const emptyTrashBtn = document.getElementById('emptyTrashBtn');
+      const toastContainer = document.getElementById('toastContainer');
+      const passwordModal = document.getElementById('passwordModal');
+      const passwordInput = document.getElementById('passwordInput');
+      const passwordError = document.getElementById('passwordError');
+      const promptSection = document.getElementById('promptSection');
+      const promptDisplay = document.getElementById('promptDisplay');
+      const promptEditor = document.getElementById('promptEditor');
+      const promptInput = document.getElementById('promptInput');
+      const setPromptBtn = document.getElementById('setPromptBtn');
+      const submissionPromptLabel = document.getElementById('submissionPromptLabel');
+      const spotlightBanner = document.getElementById('spotlightBanner');
+      const anonymousBoardToggle = document.getElementById('anonymousBoardToggle');
+      const profileModal = document.getElementById('profileModal');
+      const profileTitle = document.getElementById('profileTitle');
+      const profileContent = document.getElementById('profileContent');
+      const closeProfileModal = document.getElementById('closeProfileModal');
+      const bannedNotice = document.getElementById('bannedNotice');
+      const bannedWordsModal = document.getElementById('bannedWordsModal');
+      const newBannedWord = document.getElementById('newBannedWord');
+      const addBannedWordBtn = document.getElementById('addBannedWordBtn');
+      const clearBannedWordsBtn = document.getElementById('clearBannedWordsBtn');
+      const closeBannedWordsModal = document.getElementById('closeBannedWordsModal');
+      const bannedWordsList = document.getElementById('bannedWordsList');
+
+      // State
+      const STORAGE_KEY = 'ideaverse_final';
+      const TRASH_KEY = 'ideaverse_trash_final';
+      const BANS_KEY = 'ideaverse_bans';
+      const BANNED_WORDS_KEY = 'ideaverse_banned_words';
+      const THEME_KEY = 'ideaverse_theme';
+      const TEACHER_PASSWORD = '34651';
+      let isTeacherMode = false;
+      let ideas = [];
+      let trashIdeas = [];
+      let bans = {};
+      let bannedWords = [];
+      let currentFilter = 'all';
+      let soundEnabled = true;
+      let currentPrompt = { text: '', setDate: null };
+      let anonymousBoard = false;
+      let autoDarkEnabled = false;
+
+      const FEEDBACK_TYPES = [
+        { emoji: '👍', label: 'Support', key: 'support' },
+        { emoji: '💡', label: 'Great', key: 'great' },
+        { emoji: '🙌', label: 'Agree', key: 'agree' },
+        { emoji: '❤️', label: 'Love', key: 'love' }
+      ];
+
+      const BAN_DURATIONS = [
+        { label: '5 min', ms: 5 * 60 * 1000 },
+        { label: '1 hour', ms: 60 * 60 * 1000 },
+        { label: '2 hours', ms: 2 * 60 * 60 * 1000 },
+        { label: '3 hours', ms: 3 * 60 * 60 * 1000 },
+        { label: '1 day', ms: 24 * 60 * 60 * 1000 },
+        { label: '2 days', ms: 2 * 24 * 60 * 60 * 1000 },
+        { label: '3 days', ms: 3 * 24 * 60 * 60 * 1000 },
+      ];
+
+      // ─── Theme ───
+      function applyTheme(mode) {
+        if (mode === 'dark') { body.classList.add('dark'); themeToggle.textContent = '☀️'; }
+        else { body.classList.remove('dark'); themeToggle.textContent = '🌙'; }
+        localStorage.setItem(THEME_KEY, mode);
+      }
+      const savedTheme = localStorage.getItem(THEME_KEY) || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      applyTheme(savedTheme);
+      themeToggle.addEventListener('click', () => applyTheme(body.classList.contains('dark') ? 'light' : 'dark'));
+
+      autoDarkToggle.addEventListener('click', () => {
+        autoDarkEnabled = !autoDarkEnabled;
+        autoDarkToggle.style.borderColor = autoDarkEnabled ? 'var(--primary)' : 'var(--border)';
+        checkAutoDark();
+      });
+      function checkAutoDark() { if (autoDarkEnabled) { const h = new Date().getHours(); applyTheme(h >= 18 || h < 6 ? 'dark' : 'light'); } }
+      setInterval(checkAutoDark, 60000);
+      checkAutoDark();
+
+      // ─── Sound ───
+      let audioCtx = null;
+      function playBeep() {
+        if (!soundEnabled) return;
+        try {
+          if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+          const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+          o.connect(g); g.connect(audioCtx.destination);
+          o.frequency.value = 800; g.gain.value = 0.1;
+          o.start(); o.stop(audioCtx.currentTime + 0.1);
+        } catch(e) {}
+      }
+      soundToggle.addEventListener('click', () => { soundEnabled = !soundEnabled; soundToggle.textContent = soundEnabled ? '🔊' : '🔇'; });
+
+      // ─── Data migration & load ───
+      function migrate(idea) {
+        if (!idea.feedbacks) idea.feedbacks = {};
+        if (typeof idea.feedbacks?.support === 'number') {
+          idea.feedbackers = {};
+          for (let k of FEEDBACK_TYPES.map(f => f.key)) idea.feedbackers[k] = Array(idea.feedbacks[k] || 0).fill('migrated');
+          delete idea.feedbacks;
+        }
+        if (!idea.feedbackers) { idea.feedbackers = {}; FEEDBACK_TYPES.forEach(f => idea.feedbackers[f.key] = []); }
+        return idea;
+      }
+      function loadData() {
+        ideas = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]').map(migrate);
+        trashIdeas = JSON.parse(localStorage.getItem(TRASH_KEY) || '[]').map(migrate);
+        currentPrompt = JSON.parse(localStorage.getItem('ideaverse_prompt')) || { text: '', setDate: null };
+        anonymousBoard = localStorage.getItem('ideaverse_anonBoard') === 'true';
+        const savedBans = JSON.parse(localStorage.getItem(BANS_KEY) || '{}');
+        bans = {};
+        const now = Date.now();
+        for (let [name, expiry] of Object.entries(savedBans)) {
+          if (expiry > now) bans[name] = expiry;
+        }
+        saveBans();
+        loadBannedWords();
+        updateAnonUI();
+        checkCurrentBan();
+      }
+      function saveIdeas() { localStorage.setItem(STORAGE_KEY, JSON.stringify(ideas)); }
+      function saveTrash() { localStorage.setItem(TRASH_KEY, JSON.stringify(trashIdeas)); }
+      function saveBans() { localStorage.setItem(BANS_KEY, JSON.stringify(bans)); }
+      function savePrompt() { localStorage.setItem('ideaverse_prompt', JSON.stringify(currentPrompt)); }
+
+      // ─── Banned words functions ───
+      function loadBannedWords() {
+        bannedWords = JSON.parse(localStorage.getItem(BANNED_WORDS_KEY) || '[]');
+      }
+      function saveBannedWords() {
+        localStorage.setItem(BANNED_WORDS_KEY, JSON.stringify(bannedWords));
+      }
+      function containsBannedWord(text) {
+        const lower = text.toLowerCase();
+        return bannedWords.some(word => lower.includes(word.toLowerCase()));
+      }
+      function renderBannedWordsModal() {
+        bannedWordsList.innerHTML = '';
+        if (bannedWords.length === 0) {
+          bannedWordsList.innerHTML = '<p style="color:var(--text-muted);">No banned words yet.</p>';
+          return;
+        }
+        bannedWords.forEach(word => {
+          const item = document.createElement('div');
+          item.style.display = 'flex';
+          item.style.justifyContent = 'space-between';
+          item.style.alignItems = 'center';
+          item.style.padding = '0.3rem 0';
+          item.innerHTML = `
+            <span>${esc(word)}</span>
+            <button class="btn btn-sm btn-outline remove-banned-word" data-word="${esc(word)}">✕</button>
+          `;
+          bannedWordsList.appendChild(item);
+        });
+      }
+      function addBannedWord(word) {
+        word = word.trim().toLowerCase();
+        if (!word) return;
+        if (bannedWords.includes(word)) {
+          toast('Word already in list.', 'error');
+          return;
+        }
+        bannedWords.push(word);
+        saveBannedWords();
+        renderBannedWordsModal();
+        newBannedWord.value = '';
+      }
+      function removeBannedWord(word) {
+        bannedWords = bannedWords.filter(w => w !== word);
+        saveBannedWords();
+        renderBannedWordsModal();
+      }
+      function clearBannedWords() {
+        if (confirm('Remove all banned words?')) {
+          bannedWords = [];
+          saveBannedWords();
+          renderBannedWordsModal();
+        }
+      }
+
+      // ─── Helpers ───
+      const esc = s => { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; };
+      const initials = n => n.trim().split(/\s+/).length>1 ? (n.trim()[0]+n.trim().split(/\s+/).pop()[0]).toUpperCase() : n.trim().slice(0,2).toUpperCase()||'?';
+      const timeAgo = iso => {
+        const sec = Math.floor((new Date() - new Date(iso))/1000);
+        if (sec<60) return 'now'; const m = Math.floor(sec/60); if (m<60) return `${m}m`;
+        const h = Math.floor(m/60); if (h<24) return `${h}h`; return new Date(iso).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+      };
+      const toast = (msg, type='success', undoFn) => {
+        const t = document.createElement('div');
+        t.className = `toast ${type}${undoFn ? ' undo' : ''}`;
+        t.innerHTML = msg;
+        if (undoFn) {
+          const b = document.createElement('button');
+          b.textContent = 'Undo'; b.style = 'background:white; color:#0f172a; border:none; padding:0.3rem 0.8rem; border-radius:1rem; cursor:pointer; font-weight:600;';
+          b.addEventListener('click', (e) => { e.stopPropagation(); undoFn(); t.remove(); });
+          t.appendChild(b);
+        }
+        toastContainer.appendChild(t);
+        setTimeout(() => t.remove(), undoFn ? 5000 : 2800);
+      };
+
+      // ─── Ban logic ───
+      function isNameBanned(name) {
+        const expiry = bans[name.trim()];
+        return expiry && expiry > Date.now();
+      }
+      function checkCurrentBan() {
+        const name = studentName.value.trim();
+        if (isNameBanned(name)) {
+          const expiry = bans[name];
+          const date = new Date(expiry);
+          bannedNotice.textContent = `⛔ You are banned until ${date.toLocaleString()}. You cannot submit ideas.`;
+          bannedNotice.style.display = 'block';
+          submitBtn.disabled = true;
+          ideaText.disabled = true;
+          categorySelect.disabled = true;
+          anonymousCheck.disabled = true;
+        } else {
+          bannedNotice.style.display = 'none';
+          if (!isTeacherMode) {
+            submitBtn.disabled = false;
+            ideaText.disabled = false;
+            categorySelect.disabled = false;
+            anonymousCheck.disabled = false;
+          }
+        }
+      }
+      function banStudent(name, durationMs) {
+        const expiry = Date.now() + durationMs;
+        bans[name] = expiry;
+        saveBans();
+        checkCurrentBan();
+        render();
+        toast(`🔨 Banned "${name}" for ${BAN_DURATIONS.find(d => d.ms === durationMs)?.label || durationMs}`);
+      }
+
+      // ─── Filter & search ───
+      function getFiltered() {
+        let res = [...ideas];
+        if (currentFilter !== 'all') res = res.filter(i => i.category === currentFilter);
+        const q = searchInput.value.trim().toLowerCase();
+        if (q) res = res.filter(i => i.name.toLowerCase().includes(q) || i.text.toLowerCase().includes(q));
+        return res.sort((a,b) => { if (a.pinned!==b.pinned) return a.pinned ? -1 : 1; return new Date(b.timestamp) - new Date(a.timestamp); });
+      }
+
+      // ─── Spotlight ───
+      function updateSpotlight() {
+        const today = new Date().toDateString();
+        if (localStorage.getItem('ideaverse_spotlight') === today || ideas.length===0) { spotlightBanner.style.display = 'none'; return; }
+        const idea = ideas[Math.floor(Math.random()*ideas.length)];
+        spotlightBanner.innerHTML = `🌟 <strong>Idea of the Day:</strong> "${esc(idea.text)}" — ${anonymousBoard ? 'Anonymous' : esc(idea.name)}`;
+        spotlightBanner.style.display = 'block';
+        localStorage.setItem('ideaverse_spotlight', today);
+      }
+
+      // ─── Render ───
+      function render() {
+        const filtered = getFiltered();
+        ideasContainer.innerHTML = '';
+        ideaCountEl.textContent = `${filtered.length} idea${filtered.length!==1?'s':''}`;
+        emptyState.style.display = filtered.length ? 'none' : 'block';
+        ideasContainer.style.display = filtered.length ? 'flex' : 'none';
+
+        filtered.forEach(idea => {
+          const isAnon = anonymousBoard || idea.anonymous;
+          const displayName = isAnon ? (isTeacherMode ? `Anonymous [${esc(idea.name)}]` : 'Anonymous') : esc(idea.name);
+          const canClick = isTeacherMode || !idea.anonymous;
+          const statusBadge = idea.status ? `<span class="status-badge status-${idea.status}">${idea.status.replace('-',' ')}</span>` : '';
+          const isBanned = isTeacherMode && isNameBanned(idea.name);
+
+          const card = document.createElement('div');
+          card.className = `idea-card${idea.pinned ? ' pinned' : ''}${isBanned ? ' banned-student' : ''}`;
+          card.innerHTML = `
+            <div class="idea-avatar">${initials(idea.name)}</div>
+            <div class="idea-content">
+              <div class="idea-author${canClick ? ' clickable' : ''}" ${canClick ? `data-author="${esc(idea.name)}"` : ''}>${displayName} ${idea.pinned?'📌':''} ${isBanned ? '<span style="font-size:0.7rem; color:var(--danger);">(banned)</span>' : ''}</div>
+              <div class="idea-text">${esc(idea.text)}</div>
+              <div class="idea-meta">
+                <span>🕒 ${timeAgo(idea.timestamp)}</span>
+                <span class="idea-category">${esc(idea.category)}</span>
+                ${statusBadge}
+                ${idea.promptId ? '<span class="badge" style="background:var(--warning);color:#0f172a;">Prompt</span>' : ''}
+              </div>
+              <div class="feedback-section" data-id="${idea.id}">
+                ${FEEDBACK_TYPES.map(f => {
+                  const cnt = idea.feedbackers[f.key]?.length || 0;
+                  const voted = idea.feedbackers[f.key]?.includes(userToken);
+                  return `<button class="feedback-btn" data-feedback="${f.key}" ${voted?'disabled':''}>${f.emoji} ${f.label} <span>${cnt}</span></button>`;
+                }).join('')}
+              </div>
+              ${isTeacherMode && idea.teacherNotes ? `<div class="teacher-notes">📌 ${esc(idea.teacherNotes)}</div>` : ''}
+            </div>
+            ${isTeacherMode ? `
+            <div class="idea-actions">
+              <select class="status-select" data-id="${idea.id}" style="padding:0.2rem; border-radius:0.5rem; border:1px solid var(--border); background:var(--bg-input); color:var(--text);">
+                <option value="">No status</option>
+                <option value="review" ${idea.status==='review'?'selected':''}>Under Review</option>
+                <option value="progress" ${idea.status==='progress'?'selected':''}>In Progress</option>
+                <option value="completed" ${idea.status==='completed'?'selected':''}>Completed</option>
+                <option value="considering" ${idea.status==='considering'?'selected':''}>Considering</option>
+              </select>
+              <button class="icon-btn note-btn" data-id="${idea.id}" title="Teacher note">📝</button>
+              <button class="icon-btn pin-btn" data-id="${idea.id}" title="Pin">📌</button>
+              <button class="icon-btn edit-btn" data-id="${idea.id}" title="Edit">✏️</button>
+              <button class="icon-btn delete-btn" data-id="${idea.id}" title="Delete">🗑️</button>
+              <div class="ban-container">
+                <button class="icon-btn ban-btn" data-id="${idea.id}" data-name="${esc(idea.name)}" title="Ban student">🔨</button>
+                <div class="ban-dropdown" id="banDropdown-${idea.id}">
+                  ${BAN_DURATIONS.map(d => `<button class="ban-option" data-duration="${d.ms}">${d.label}</button>`).join('')}
+                </div>
+              </div>
+            </div>` : ''}
+          `;
+          ideasContainer.appendChild(card);
+        });
+
+        renderTrash();
+        updateSpotlight();
+        updatePromptUI();
+      }
+
+      function renderTrash() {
+        if (!isTeacherMode) { trashSection.style.display = 'none'; return; }
+        trashSection.style.display = 'block';
+        trashContainer.innerHTML = '';
+        trashEmpty.style.display = trashIdeas.length ? 'none' : 'block';
+        trashIdeas.forEach(idea => {
+          const card = document.createElement('div');
+          card.className = 'idea-card trash-item';
+          card.innerHTML = `
+            <div class="idea-avatar">${initials(idea.name)}</div>
+            <div class="idea-content">
+              <div class="idea-author">${esc(idea.name)}</div>
+              <div class="idea-text">${esc(idea.text)}</div>
+              <div class="idea-meta">${timeAgo(idea.timestamp)} · ${esc(idea.category)}</div>
+            </div>
+            <button class="icon-btn restore-btn" data-id="${idea.id}">↩️</button>
+            <button class="icon-btn perm-delete-btn" data-id="${idea.id}">❌</button>
+          `;
+          trashContainer.appendChild(card);
+        });
+      }
+
+      // ─── Event delegation ───
+      document.addEventListener('click', (e) => {
+        if (!e.target.closest('.ban-container')) {
+          document.querySelectorAll('.ban-dropdown.active').forEach(d => d.classList.remove('active'));
+        }
+      });
+
+      ideasContainer.addEventListener('click', (e) => {
+        const fbBtn = e.target.closest('.feedback-btn');
+        if (fbBtn && !fbBtn.disabled) {
+          const section = fbBtn.closest('.feedback-section');
+          const id = section.dataset.id, key = fbBtn.dataset.feedback;
+          const idea = ideas.find(i => i.id === id);
+          if (!idea) return;
+          if (!idea.feedbackers[key]) idea.feedbackers[key] = [];
+          if (idea.feedbackers[key].includes(userToken)) return;
+          idea.feedbackers[key].push(userToken);
+          saveIdeas();
+          fbBtn.querySelector('span').textContent = idea.feedbackers[key].length;
+          fbBtn.disabled = true;
+          return;
+        }
+
+        const banBtn = e.target.closest('.ban-btn');
+        if (banBtn) {
+          e.stopPropagation();
+          const dropdown = banBtn.parentElement.querySelector('.ban-dropdown');
+          document.querySelectorAll('.ban-dropdown.active').forEach(d => { if (d !== dropdown) d.classList.remove('active'); });
+          dropdown.classList.toggle('active');
+          return;
+        }
+
+        const banOption = e.target.closest('.ban-option');
+        if (banOption) {
+          e.stopPropagation();
+          const dropdown = banOption.closest('.ban-dropdown');
+          const banBtn = dropdown.parentElement.querySelector('.ban-btn');
+          const student = banBtn.dataset.name;
+          const duration = parseInt(banOption.dataset.duration);
+          banStudent(student, duration);
+          dropdown.classList.remove('active');
+          return;
+        }
+
+        const authorEl = e.target.closest('.idea-author');
+        if (authorEl) {
+          const name = authorEl.dataset.author;
+          if (name) showProfile(name);
+          return;
+        }
+
+        if (!isTeacherMode) return;
+
+        // Teacher actions (pin, edit, delete, note)
+        const pinBtn = e.target.closest('.pin-btn');
+        if (pinBtn) { togglePin(pinBtn.dataset.id); return; }
+        const editBtn = e.target.closest('.edit-btn');
+        if (editBtn) { editIdea(editBtn.dataset.id); return; }
+        const deleteBtn = e.target.closest('.delete-btn');
+        if (deleteBtn) { deleteWithUndo(deleteBtn.dataset.id); return; }
+        const noteBtn = e.target.closest('.note-btn');
+        if (noteBtn) { addNote(noteBtn.dataset.id); return; }
+      });
+
+      ideasContainer.addEventListener('change', (e) => {
+        if (e.target.classList.contains('status-select')) {
+          const idea = ideas.find(i => i.id === e.target.dataset.id);
+          if (idea) { idea.status = e.target.value || null; saveIdeas(); render(); }
+        }
+      });
+
+      trashContainer.addEventListener('click', (e) => {
+        const restoreBtn = e.target.closest('.restore-btn');
+        if (restoreBtn) restoreIdea(restoreBtn.dataset.id);
+        const permBtn = e.target.closest('.perm-delete-btn');
+        if (permBtn) permDelete(permBtn.dataset.id);
+      });
+
+      // ─── Teacher action functions ───
+      function togglePin(id) {
+        const idea = ideas.find(i => i.id === id);
+        if (idea) {
+          if (!idea.pinned && ideas.filter(i => i.pinned).length >= 2) return toast('Maximum 2 pinned ideas.', 'error');
+          idea.pinned = !idea.pinned;
+          saveIdeas(); render();
+        }
+      }
+      function editIdea(id) {
+        const idea = ideas.find(i => i.id === id);
+        if (!idea) return;
+        const text = prompt('Edit idea text:', idea.text);
+        if (text !== null && text.trim()) { idea.text = text.trim(); saveIdeas(); render(); toast('✏️ Idea updated'); }
+      }
+      function deleteWithUndo(id) {
+        const idx = ideas.findIndex(i => i.id === id);
+        if (idx === -1) return;
+        const [removed] = ideas.splice(idx, 1);
+        trashIdeas.push(removed);
+        saveIdeas(); saveTrash(); render();
+        toast('🗑️ Moved to trash', 'error', () => {
+          const tidx = trashIdeas.findIndex(i => i.id === removed.id);
+          if (tidx !== -1) {
+            const [restored] = trashIdeas.splice(tidx, 1);
+            ideas.push(restored);
+            saveIdeas(); saveTrash(); render();
+            toast('↩️ Idea restored');
+          }
+        });
+      }
+      function addNote(id) {
+        const idea = ideas.find(i => i.id === id);
+        if (idea) {
+          const note = prompt('Teacher note:', idea.teacherNotes || '');
+          if (note !== null) { idea.teacherNotes = note.trim(); saveIdeas(); render(); }
+        }
+      }
+      function restoreIdea(id) {
+        const idx = trashIdeas.findIndex(i => i.id === id);
+        if (idx !== -1) {
+          const [restored] = trashIdeas.splice(idx, 1);
+          ideas.push(restored);
+          saveIdeas(); saveTrash(); render();
+          toast('↩️ Restored');
+        }
+      }
+      function permDelete(id) {
+        trashIdeas = trashIdeas.filter(i => i.id !== id);
+        saveTrash(); render(); toast('❌ Permanently deleted', 'error');
+      }
+      emptyTrashBtn.addEventListener('click', () => {
+        if (trashIdeas.length && confirm('Delete all trash permanently?')) { trashIdeas = []; saveTrash(); render(); toast('Trash emptied', 'error'); }
+      });
+
+      // ─── Prompt ───
+      function updatePromptUI() {
+        if (currentPrompt.text) {
+          promptSection.style.display = 'block';
+          promptDisplay.textContent = `📢 ${currentPrompt.text}`;
+          submissionPromptLabel.textContent = `💬 Prompt: ${currentPrompt.text}`;
+        } else {
+          promptSection.style.display = 'none';
+          submissionPromptLabel.textContent = '';
+        }
+        promptEditor.style.display = isTeacherMode ? 'block' : 'none';
+      }
+      setPromptBtn.addEventListener('click', () => {
+        const text = promptInput.value.trim();
+        if (!text) return;
+        currentPrompt = { text, setDate: new Date().toISOString() };
+        savePrompt(); updatePromptUI(); promptInput.value = ''; toast('✅ Prompt set!');
+      });
+
+      // ─── Profile modal ───
+      function showProfile(name) {
+        const studentIdeas = ideas.filter(i => i.name === name);
+        profileTitle.textContent = `👤 ${esc(name)} (${studentIdeas.length} idea${studentIdeas.length!==1?'s':''})`;
+        profileContent.innerHTML = studentIdeas.length
+          ? studentIdeas.map(i => `<div style="border-bottom:1px solid var(--border); padding:0.5rem 0;"><strong>${esc(i.text)}</strong><br><small>${timeAgo(i.timestamp)} · ${esc(i.category)}</small></div>`).join('')
+          : '<p>No ideas yet.</p>';
+        profileModal.style.display = 'flex';
+      }
+      closeProfileModal.addEventListener('click', () => profileModal.style.display = 'none');
+      profileModal.addEventListener('click', e => { if (e.target === profileModal) profileModal.style.display = 'none'; });
+
+      // ─── Anonymous board toggle ───
+      function updateAnonUI() {
+        anonymousBoardToggle.textContent = anonymousBoard ? '🕶️ Anon ON' : '🕶️ Anon OFF';
+        anonymousBoardToggle.style.borderColor = anonymousBoard ? 'var(--primary)' : 'var(--border)';
+      }
+      anonymousBoardToggle.addEventListener('click', () => {
+        anonymousBoard = !anonymousBoard;
+        localStorage.setItem('ideaverse_anonBoard', anonymousBoard);
+        updateAnonUI(); render();
+      });
+
+      // ─── Export ───
+      function exportCSV() {
+        const header = ['Name','Category','Anonymous','Idea','Timestamp','Status','Notes','Prompt'];
+        const rows = ideas.map(i => [i.name, i.category, i.anonymous?'Yes':'No', i.text, new Date(i.timestamp).toLocaleString(), i.status||'', i.teacherNotes||'', i.promptId?'Yes':'']);
+        const csv = [header, ...rows].map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+        const blob = new Blob(['\uFEFF'+csv], {type:'text/csv'});
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'ideaverse.csv'; a.click();
+        toast('📊 CSV exported');
+      }
+      function exportTxt() {
+        const items = getFiltered().map(i => `[${i.category}] ${i.anonymous?'Anonymous':i.name}: ${i.text} (${timeAgo(i.timestamp)})${i.status ? ' ['+i.status+']' : ''}`).join('\n');
+        const blob = new Blob([items], {type:'text/plain'});
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'ideaverse.txt'; a.click();
+        toast('📋 TXT exported');
+      }
+      exportCsvBtn.addEventListener('click', exportCSV);
+      exportTxtBtn.addEventListener('click', exportTxt);
+
+      // ─── Keyboard shortcuts ───
+      document.addEventListener('keydown', (e) => {
+        if (e.ctrlKey && e.key === 'Enter') { ideaForm.requestSubmit(); }
+        if (e.ctrlKey && e.key === 'k') { e.preventDefault(); searchInput.focus(); }
+        if (e.key === 'Escape') { if (passwordModal.style.display === 'flex') hideModal(); if (profileModal.style.display === 'flex') profileModal.style.display = 'none'; }
+      });
+
+      // ─── Draft saving ───
+      function saveDraft() {
+        localStorage.setItem('ideaverse_draft', JSON.stringify({ name: studentName.value, category: categorySelect.value, text: ideaText.value, anon: anonymousCheck.checked }));
+      }
+      function loadDraft() {
+        const d = JSON.parse(localStorage.getItem('ideaverse_draft'));
+        if (d) {
+          studentName.value = d.name || '';
+          categorySelect.value = d.category || 'General';
+          ideaText.value = d.text || '';
+          anonymousCheck.checked = d.anon || false;
+          charCount.textContent = `${ideaText.value.length} / 500`;
+        }
+      }
+      [studentName, categorySelect, ideaText, anonymousCheck].forEach(el => el.addEventListener('input', saveDraft));
+      ideaForm.addEventListener('submit', () => localStorage.removeItem('ideaverse_draft'));
+
+      // ─── Teacher mode ───
+      function enterTeacherMode() {
+        isTeacherMode = true;
+        teacherIndicator.style.display = 'inline-flex';
+        clearAllBtn.style.display = 'inline-flex';
+        bannedWordsBtn.style.display = 'inline-flex';
+        exportCsvBtn.style.display = 'inline-flex';
+        exportTxtBtn.style.display = 'inline-flex';
+        anonymousBoardToggle.style.display = 'inline-flex';
+        teacherToggleBtn.innerHTML = '🔓 Exit Teacher';
+        teacherToggleBtn.classList.add('btn-primary'); teacherToggleBtn.classList.remove('btn-outline');
+        submitBtn.disabled = true; submitBtn.style.opacity = '0.6';
+        [studentName, ideaText, categorySelect, anonymousCheck].forEach(el => el.disabled = true);
+        updatePromptUI(); render(); toast('🔓 Teacher mode enabled');
+      }
+      function exitTeacherMode() {
+        isTeacherMode = false;
+        teacherIndicator.style.display = 'none';
+        clearAllBtn.style.display = 'none';
+        bannedWordsBtn.style.display = 'none';
+        exportCsvBtn.style.display = 'none';
+        exportTxtBtn.style.display = 'none';
+        anonymousBoardToggle.style.display = 'none';
+        trashSection.style.display = 'none';
+        teacherToggleBtn.innerHTML = '🔒 Teacher';
+        teacherToggleBtn.classList.remove('btn-primary'); teacherToggleBtn.classList.add('btn-outline');
+        submitBtn.disabled = false; submitBtn.style.opacity = '1';
+        [studentName, ideaText, categorySelect, anonymousCheck].forEach(el => el.disabled = false);
+        checkCurrentBan();
+        updatePromptUI(); render(); toast('🔒 Teacher mode exited');
+      }
+
+      function showModal() { passwordModal.style.display='flex'; passwordInput.value=''; passwordError.style.display='none'; passwordInput.focus(); }
+      function hideModal() { passwordModal.style.display='none'; }
+      document.getElementById('confirmPasswordBtn').addEventListener('click', () => {
+        if (passwordInput.value.trim() === TEACHER_PASSWORD) { hideModal(); enterTeacherMode(); }
+        else { passwordError.style.display='block'; passwordInput.value=''; passwordInput.focus(); }
+      });
+      document.getElementById('cancelPasswordBtn').addEventListener('click', hideModal);
+      passwordModal.addEventListener('click', e => { if (e.target === passwordModal) hideModal(); });
+      passwordInput.addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('confirmPasswordBtn').click(); if (e.key === 'Escape') hideModal(); });
+
+      // ─── Banned words modal events ───
+      bannedWordsBtn.addEventListener('click', () => {
+        bannedWordsModal.style.display = 'flex';
+        renderBannedWordsModal();
+      });
+      closeBannedWordsModal.addEventListener('click', () => { bannedWordsModal.style.display = 'none'; });
+      bannedWordsModal.addEventListener('click', (e) => { if (e.target === bannedWordsModal) bannedWordsModal.style.display = 'none'; });
+      addBannedWordBtn.addEventListener('click', () => addBannedWord(newBannedWord.value));
+      newBannedWord.addEventListener('keydown', (e) => { if (e.key === 'Enter') addBannedWordBtn.click(); });
+      clearBannedWordsBtn.addEventListener('click', clearBannedWords);
+      bannedWordsList.addEventListener('click', (e) => {
+        const btn = e.target.closest('.remove-banned-word');
+        if (btn) removeBannedWord(btn.dataset.word);
+      });
+
+      // ─── Form submission ───
+      ideaForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        if (isTeacherMode) return toast('Exit teacher mode to submit.', 'error');
+        const name = studentName.value.trim();
+        if (isNameBanned(name)) return toast('You are currently banned from submitting.', 'error');
+        const text = ideaText.value.trim();
+        if (!name || !text) return toast('Please fill all fields.', 'error');
+        if (text.length > 500) return toast('Too long (max 500).', 'error');
+        if (containsBannedWord(text)) {
+          toast('Your idea contains a banned word. Please revise.', 'error');
+          return;
+        }
+        const newIdea = {
+          id: crypto.randomUUID?.() ?? Date.now().toString(36)+Math.random().toString(36).slice(2),
+          name, text, category: categorySelect.value, anonymous: anonymousCheck.checked,
+          timestamp: new Date().toISOString(), pinned: false, status: null, teacherNotes: '',
+          feedbackers: Object.fromEntries(FEEDBACK_TYPES.map(f => [f.key, []])),
+          promptId: currentPrompt.text ? currentPrompt.setDate : null
+        };
+        ideas.push(newIdea); saveIdeas(); render();
+        playBeep();
+        confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
+        toast('✨ Idea shared!');
+        ideaForm.reset(); charCount.textContent = '0 / 500'; charCount.classList.remove('warn');
+        studentName.focus();
+        localStorage.removeItem('ideaverse_draft');
+      });
+
+      ideaText.addEventListener('input', () => {
+        const len = ideaText.value.length;
+        charCount.textContent = `${len} / 500`;
+        charCount.classList.toggle('warn', len > 450);
+      });
+      searchInput.addEventListener('input', render);
+      filterButtons.addEventListener('click', (e) => {
+        if (!e.target.classList.contains('filter-btn')) return;
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        e.target.classList.add('active');
+        currentFilter = e.target.dataset.category;
+        render();
+      });
+
+      teacherToggleBtn.addEventListener('click', () => isTeacherMode ? exitTeacherMode() : showModal());
+      clearAllBtn.addEventListener('click', () => trashSection.scrollIntoView({behavior:'smooth'}));
+
+      // Init
+      loadData();
+      render();
+      loadDraft();
+      studentName.focus();
+    })();
+  </script>
+</body>
+</html>
